@@ -1,7 +1,7 @@
 # wrangler.toml
 
 # 你的 Pages 项目名称，必须和 Cloudflare 上的完全一致
-name = "r2-proxy-alias3"
+name = "r2-proxy-alias1"
 # 兼容性日期，使用一个最近的日期即可
 compatibility_date = "2023-11-21"
 
@@ -12,10 +12,10 @@ pages_build_output_dir = "dist"
 # binding = "变量名"，必须和代码 context.env.PROXY_BUCKET 一致
 binding = "PROXY_BUCKET"
 # bucket_name = "你的 R2 存储桶的真实名称"
-bucket_name = "alias3"
+bucket_name = "alias1"
 
 # [vars] 就是环境变量的配置
 [vars]
 MAX_AGE = "31536000"
-R2_CUSTOM_DOMAIN = "3.alias3.de5.net"
+R2_CUSTOM_DOMAIN = "cache.alias1.de5.net"
 
