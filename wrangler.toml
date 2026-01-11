@@ -17,5 +17,5 @@ bucket_name = "alias1"
 # [vars] 就是环境变量的配置
 [vars]
 MAX_AGE = "31536000"
-R2_CUSTOM_DOMAIN = "cache.alias1.de5.net"
+R2_CUSTOM_DOMAIN = "cache.alias1.indevs.in"
 

@@ -59,7 +59,8 @@ npx wrangler r2 bucket list
 echo "--- 步骤 6: 自动更新 wrangler.toml (直接替换，无备份) ---"
 # 使用 sed 查找以 'bucket_name =' 开头的整行，并用新值替换。
 # `^` 表示行首, `.*` 表示匹配该行余下的所有内容。
-CACHE_DOMAIN="cache.$BUCKET_NAME.de5.net"
+#CACHE_DOMAIN="cache.$BUCKET_NAME.de5.net"
+CACHE_DOMAIN="cache.$BUCKET_NAME.indevs.in"
 
 sed -i '' "s/^bucket_name = .*/bucket_name = \"$BUCKET_NAME\"/" wrangler.toml
 sed -i '' "s/^name = .*/name = \"$PROJECT_NAME\"/" wrangler.toml
