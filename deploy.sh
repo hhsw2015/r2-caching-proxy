@@ -18,7 +18,8 @@ fi
 BUCKET_NAME="$1"
 MAX_AGE=${2:-31536000}
 # 项目名称可以保持硬编码，或者也作为第二个参数 ($2) 传入
-PROJECT_NAME="r2-proxy"
+#PROJECT_NAME="r2-proxy"
+PROJECT_NAME="r2-proxy-$BUCKET_NAME"
 
 echo "--- 准备部署项目: $PROJECT_NAME ---"
 echo "--- 目标 R2 存储桶: $BUCKET_NAME ---"
