@@ -19,7 +19,7 @@ export async function onRequest(context) {
 
       // 2. 构造指向 R2 自定义域名的干净、标准的 URL
       //    我们必须手动将干净路径中的空格等字符重新编码，以生成一个有效的 URL。
-      const r2Url = `https://${R2_CUSTOM_DOMAIN}${encodeURIComponent(fullyDecodedPathname.slice(1))}`;
+      const r2Url = `https://${R2_CUSTOM_DOMAIN}/${encodeURIComponent(fullyDecodedPathname.slice(1))}`;
       
       console.log(`[Redirect] Redirecting to clean R2 URL: "${r2Url}"`);
 
