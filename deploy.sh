@@ -3,30 +3,45 @@
 # 确保脚本在任何命令失败时立即退出
 set -e
 
-# --- 步骤 1: 验证和解析输入 ---
-# 检查第一个命令行参数 ($1) 是否为空。
-if [ -z "$1" ]; then
-  echo "❌ 错误：未提供存储桶名称。"
-  echo "   用法: ./deploy.sh <your-bucket-name> [cache-max-age-seconds]"
-  echo "   示例: ./deploy.sh my-bucket"
-  echo "   示例: ./deploy.sh my-bucket 86400"
-  exit 1
+echo "--- 步骤 1: 登录 Cloudflare (确保认证有效) ---"
+# 这一步必须在所有其他 wrangler 命令之前，以确保我们有权执行操作。
+npx wrangler login
+
+echo "--- 步骤 2: 解析输入参数以确定存储桶名称 ---"
+
+# 检查用户是否提供了第一个参数（存储桶名称）
+if [ -n "$1" ]; then
+  # --- 场景 A: 用户提供了存储桶名称 ---
+  BUCKET_NAME="$1"
+  # 第二个参数作为缓存时间，如果不存在则使用默认值
+  MAX_AGE=${2:-31536000}
+  echo "✅ 使用命令行提供的存储桶名称: $BUCKET_NAME"
+else
+  # --- 场景 B: 用户未提供存储桶名称，启动自动检测 ---
+  echo "🤖 未提供存储桶名称，启动自动检测..."
+
+  # 运行 wrangler whoami 并用 awk 提取全小写的邮箱
+  USER_EMAIL=$(npx wrangler whoami | awk '/associated with the email/ { sub(/\.$/, "", $NF); print $NF }')
+  if [ -z "$USER_EMAIL" ]; then
+    echo "❌ 错误: 无法从 'wrangler whoami' 的输出中提取邮箱。请重试。"
+    exit 1
+  fi
+
+  # 从邮箱生成存储桶名称
+  BUCKET_NAME=${USER_EMAIL%@*}
+  # 在此场景下，第一个参数（如果存在）被视为缓存时间
+  MAX_AGE=${1:-31536000}
+  echo "✅ 成功自动检测并命名存储桶为: $BUCKET_NAME"
 fi
 
-# --- 配置 ---
-# 从第一个命令行参数获取存储桶名称
-BUCKET_NAME="$1"
-MAX_AGE=${2:-31536000}
-# 项目名称可以保持硬编码，或者也作为第二个参数 ($2) 传入
-#PROJECT_NAME="r2-proxy"
+# 根据最终确定的存储桶名称，生成项目名称
 PROJECT_NAME="r2-proxy-$BUCKET_NAME"
 
-echo "--- 准备部署项目: $PROJECT_NAME ---"
-echo "--- 目标 R2 存储桶: $BUCKET_NAME ---"
+echo "---"
+echo "准备部署项目: $PROJECT_NAME"
+echo "目标 R2 存储桶: $BUCKET_NAME"
+echo "CDN 缓存时长: $MAX_AGE 秒"
 echo ""
-
-echo "--- 步骤 2: 登录 Cloudflare (如果需要) ---"
-npx wrangler login
 
 echo "--- 步骤 3: 确保 Pages 项目存在 ---"
 # 显式创建 Pages 项目。`--production-branch main` 会自动设置生产分支。
