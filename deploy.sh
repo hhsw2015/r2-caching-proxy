@@ -3,7 +3,7 @@
 # 确保脚本在任何命令失败时立即退出
 set -e
 
-echo "--- 步骤 1: 登录 Cloudflare (确保认证有效) ---"
+echo "--- 步骤 1: 登录 Cloudflare ---"
 # 这一步必须在所有其他 wrangler 命令之前，以确保我们有权执行操作。
 npx wrangler login
 
@@ -56,7 +56,7 @@ npx wrangler r2 bucket create $BUCKET_NAME || true
 echo "--- 步骤 5: 列出所有 R2 存储桶以供确认 ---"
 npx wrangler r2 bucket list
 
-echo "--- 步骤 6: 自动更新 wrangler.toml (直接替换，无备份) ---"
+echo "--- 步骤 6: 自动更新 wrangler.toml ---"
 # 使用 sed 查找以 'bucket_name =' 开头的整行，并用新值替换。
 # `^` 表示行首, `.*` 表示匹配该行余下的所有内容。
 #CACHE_DOMAIN="cache.$BUCKET_NAME.de5.net"
@@ -68,6 +68,7 @@ sed -i '' "s/^MAX_AGE = .*/MAX_AGE = \"$MAX_AGE\"/" wrangler.toml
 sed -i '' "s/^R2_CUSTOM_DOMAIN = .*/R2_CUSTOM_DOMAIN = \"$CACHE_DOMAIN\"/" wrangler.toml
 
 echo "✅ wrangler.toml 已自动配置。"
+cat wrangler.toml
 
 echo "--- 步骤 7: 部署到 Cloudflare Pages ---"
 npx wrangler pages deploy .
