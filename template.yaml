@@ -1,0 +1,15 @@
+  - name: "name"    # mail
+    enabled: true
+    endpoint: "https://aaa.r2.cloudflarestorage.com"
+    access_key_id: "cc99..."
+    secret_access_key: "5af16da8f9...."
+    max_size: "10GB"
+    virtual: false
+    path_style: false
+    weight: 10
+    region: "auto"
+    custom_host: "bbb.pages.dev"
+    remove_bucket: true
+    operation_limits:
+      type_a: 0
+      type_b: 0

@@ -71,7 +71,30 @@ npx wrangler pages deploy .
 echo "--- 部署完成！---"
 
 echo "--- 步骤 8: 查找生产域名 ---"
-npx wrangler pages project list
+#npx wrangler pages project list
+
+PROJECT_DOMAIN=$(npx wrangler pages project list | grep "$PROJECT_NAME" | awk -F '│' '{print $3}' | sed 's/ //g')
+
+if [ -n "$PROJECT_DOMAIN" ]; then
+  echo "🎉 您的 Pages 项目已成功部署！访问地址:"
+  echo "   ➡️  https://$PROJECT_DOMAIN"
+
+  echo ""
+  echo "--- 步骤 8: 更新本地 template.yaml 文件 ---"
+  if [ -f "template.yaml" ]; then
+    echo "🔎 找到了 template.yaml 文件，正在更新 custom_host..."
+    # 将 sed 命令写在单一行内，避免因换行符导致的解析错误。
+    sed -i '' "s/^[[:space:]]*custom_host:.*/    custom_host: \"$PROJECT_DOMAIN\"/" template.yaml
+    echo "✅ template.yaml 文件已更新。"
+
+    cat template.yaml
+  else
+    echo "🤷 未找到 template.yaml 文件，跳过此步骤。"
+  fi
+
+else
+  echo "⚠️ 无法自动提取项目域名。请手动在 Cloudflare 仪表板中查找项目 '$PROJECT_NAME' 的域名。"
+fi
 
 echo "--- ✅ 自动化流程结束 ---"
 
