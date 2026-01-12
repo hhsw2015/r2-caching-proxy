@@ -61,6 +61,10 @@ async function resolveObjectKey(env, pathname) {
   return null;
 }
 
+function buildCacheKey(canonicalUrl) {
+  return new Request(canonicalUrl, { method: 'GET' });
+}
+
 export async function onRequest(context) {
   try {
     const { request, env } = context;
@@ -99,7 +103,7 @@ export async function onRequest(context) {
 
     const normalizedOnce = normalizePathname(url.pathname, 1);
     const canonicalUrlOnce = `${url.protocol}//${url.hostname}${normalizedOnce}`;
-    const cacheKeyOnce = new Request(canonicalUrlOnce, request);
+    const cacheKeyOnce = buildCacheKey(canonicalUrlOnce);
 
     const cache = caches.default;
     const cacheResponseOnce = await cache.match(cacheKeyOnce);
@@ -112,7 +116,7 @@ export async function onRequest(context) {
     const tryDoubleDecode = shouldTryDoubleDecode(url.pathname);
     const normalizedTwice = tryDoubleDecode ? normalizePathname(url.pathname, 2) : normalizedOnce;
     const canonicalUrlTwice = `${url.protocol}//${url.hostname}${normalizedTwice}`;
-    const cacheKeyTwice = new Request(canonicalUrlTwice, request);
+    const cacheKeyTwice = buildCacheKey(canonicalUrlTwice);
 
     if (tryDoubleDecode && canonicalUrlTwice !== canonicalUrlOnce) {
       const cacheResponseTwice = await cache.match(cacheKeyTwice);
@@ -143,13 +147,28 @@ export async function onRequest(context) {
     }
 
     if (object === null) {
-      return new Response('Object Not Found', { status: 404 });
+      const notFoundHeaders = new Headers({
+        'Cache-Control': 's-maxage=60',
+      });
+      const notFoundResponse = new Response('Object Not Found', {
+        status: 404,
+        headers: notFoundHeaders,
+      });
+
+      context.waitUntil(cache.put(cacheKeyOnce, notFoundResponse.clone()));
+      if (tryDoubleDecode && canonicalUrlTwice !== canonicalUrlOnce) {
+        context.waitUntil(cache.put(cacheKeyTwice, notFoundResponse.clone()));
+      }
+
+      return notFoundResponse;
     }
 
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
-    headers.append('Cache-Control', `s-maxage=${maxage}`);
+    if (!headers.has('Cache-Control')) {
+      headers.set('Cache-Control', `s-maxage=${maxage}`);
+    }
 
     const response = new Response(object.body, { headers });
 
